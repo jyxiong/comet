@@ -42,6 +42,8 @@ namespace comet
 
         VkImage get_handle() const;
 
+        VkImageType get_type() const;
+
         const VkExtent3D& get_extent() const;
 
         VkFormat get_format() const;
@@ -49,6 +51,10 @@ namespace comet
         VkImageSubresource get_subresource() const;
 
         std::unordered_set<ImageView *> &get_views();
+
+        VkSampleCountFlagBits get_sample_count() const;     
+
+        VkImageUsageFlags get_usage() const;   
 
     private:
         Device *m_device{};

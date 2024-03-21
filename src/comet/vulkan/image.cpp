@@ -139,6 +139,11 @@ VkImage Image::get_handle() const
     return m_handle;
 }
 
+VkImageType Image::get_type() const
+{
+	return m_type;
+}
+
 const VkExtent3D &Image::get_extent() const
 {
 	return m_extent;
@@ -157,4 +162,14 @@ VkImageSubresource Image::get_subresource() const
 std::unordered_set<ImageView *> &Image::get_views()
 {
     return m_views;
+}
+
+VkSampleCountFlagBits Image::get_sample_count() const
+{
+	return m_sample_count;
+}
+
+VkImageUsageFlags Image::get_usage() const
+{
+	return m_usage;
 }

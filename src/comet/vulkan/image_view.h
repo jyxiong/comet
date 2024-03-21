@@ -23,6 +23,14 @@ namespace comet
 
         ImageView &operator=(ImageView &&) = delete;
 
+        VkImageView get_handle() const;
+
+        VkFormat get_format() const;
+
+        VkImageSubresourceRange get_subresource_range() const;
+
+        const Image& get_image() const;
+
     private:
         Device *m_device{};
 

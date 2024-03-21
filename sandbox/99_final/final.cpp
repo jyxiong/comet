@@ -5,7 +5,9 @@
 #include <iostream>
 #include <vector>
 
+#include "comet/vulkan/image.h"
 #include "volk.h"
+#include "vulkan/vulkan_core.h"
 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
@@ -118,11 +120,7 @@ void HelloTriangleApplication::cleanup()
     // 销毁渲染通道
     vkDestroyRenderPass(m_device->get_handle(), m_renderPass, nullptr);
 
-    // 销毁图像视图
-    for (auto imageView: m_swapChainImageViews)
-    {
-        vkDestroyImageView(m_device->get_handle(), imageView, nullptr);
-    }
+    m_swapchain_image_views.clear();
 
     m_swapchain.reset();
 
@@ -137,41 +135,15 @@ void HelloTriangleApplication::cleanup()
 
 void HelloTriangleApplication::createImageViews()
 {
-    const auto& swapchain_images = m_swapchain->get_images();
+    auto& swapchain_images = m_swapchain->get_images();
 
-    // 分配图像视图空间
-    m_swapChainImageViews.resize(swapchain_images.size());
+    VkExtent3D extent{m_swapchain->get_extent().width, m_swapchain->get_extent().height, 1};
+
     // 便利交换链图像，创建图像视图
     for (unsigned int i = 0; i < swapchain_images.size(); i++)
     {
-        // 创建图像视图信息
-        VkImageViewCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = swapchain_images[i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = m_swapchain->get_format();
-        // 设置图像视图的通道映射
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-        // 设置图像视图的子资源范围
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        // 图像的mipmap层级
-        createInfo.subresourceRange.baseMipLevel = 0;
-        // 图像的mipmap层级数量
-        createInfo.subresourceRange.levelCount = 1;
-        // 图像的数组层级，用于三维图像
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        // 图像的数组层级数量
-        createInfo.subresourceRange.layerCount = 1;
-
-        // 创建图像视图
-        if (vkCreateImageView(m_device->get_handle(), &createInfo, nullptr, &m_swapChainImageViews[i]) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create image views!");
-        }
+        auto image = Image(*m_device, swapchain_images[i], extent, m_swapchain->get_format(), m_swapchain->get_usage());
+        m_swapchain_image_views.emplace_back(image, VK_IMAGE_VIEW_TYPE_2D, m_swapchain->get_format());
     }
 }
 
@@ -487,11 +459,11 @@ VkShaderModule HelloTriangleApplication::createShaderModule(const std::vector<ch
 
 void HelloTriangleApplication::createFramebuffers()
 {
-    m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
+    m_swapChainFramebuffers.resize(m_swapchain_image_views.size());
 
-    for (size_t i = 0; i < m_swapChainImageViews.size(); i++)
+    for (size_t i = 0; i < m_swapchain_image_views.size(); i++)
     {
-        VkImageView attachments[] = { m_swapChainImageViews[i] };
+        VkImageView attachments[] = { m_swapchain_image_views[i].get_handle()};
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include "comet/vulkan/common.h"
+#include "vulkan/vulkan_core.h"
 
 using namespace comet;
 
@@ -59,4 +60,24 @@ ImageView::ImageView(ImageView &&other)
 ImageView::~ImageView()
 {
     vkDestroyImageView(m_device->get_handle(), m_handle, nullptr);
+}
+
+VkImageView ImageView::get_handle() const
+{
+    return m_handle;
+}
+
+VkFormat ImageView::get_format() const
+{
+    return m_format;
+}
+
+VkImageSubresourceRange ImageView::get_subresource_range() const
+{
+    return m_subresource_range;
+}
+
+const Image &ImageView::get_image() const
+{
+    return *m_image;
 }
